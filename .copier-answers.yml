@@ -1,0 +1,7 @@
+# Changes here will be overwritten by Copier
+_commit: v0.0.1
+_src_path: tool_template/
+python_version: '3.10'
+tool_name: mkdocs_autoref_plugin
+your_email: normandf@mila.quebec
+your_name: Fabrice Normandin
