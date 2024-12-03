@@ -15,7 +15,7 @@ class Foo:
 
 
 this_module = Path(__file__).parent.name + "." + Path(__file__).stem
-foo_full_ref = this_module + "." + Foo.__name__
+foo_full_ref = this_module + "." + Foo.__qualname__
 
 
 @pytest.fixture(autouse=True)
@@ -102,7 +102,7 @@ def test_ref_using_additional_python_references():
     page.meta = {"additional_python_references": [this_module]}
 
     result = plugin.on_page_markdown(
-        "`Foo`",
+        f"`{Foo.__name__}`",
         page=page,
         config=mkdocs_config,
         files=Files([]),

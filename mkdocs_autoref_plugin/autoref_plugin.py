@@ -11,6 +11,7 @@ import importlib
 import inspect
 import re
 import types
+from typing import Any
 
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.plugins import BasePlugin, get_plugin_logger
@@ -39,9 +40,9 @@ class CustomAutoRefPlugin(BasePlugin):
 
     def __init__(self):
         super().__init__()
-        self.default_reference_sources = sum(
-            map(_expand, default_reference_sources), []
-        )
+        self.default_reference_sources: dict[str, type | object] = {}
+        for source in default_reference_sources:
+            self.default_reference_sources.update(_expand(source))
 
     def on_page_markdown(
         self, markdown: str, /, *, page: Page, config: MkDocsConfig, files: Files
@@ -73,16 +74,16 @@ class CustomAutoRefPlugin(BasePlugin):
         #     additional_objects = _expand(module_path)
         if referenced_packages := page.meta.get("additional_python_references", []):
             logger.debug(f"Loading extra references: {referenced_packages}")
-            additional_objects: list[
-                object
-            ] = _get_referencable_objects_from_doc_page_header(referenced_packages)
+            additional_objects = _get_referencable_objects_from_doc_page_header(
+                referenced_packages
+            )
         else:
-            additional_objects = []
+            additional_objects = {}
 
         if additional_objects:
-            additional_objects = [
-                obj
-                for obj in additional_objects
+            additional_objects = {
+                k: obj
+                for k, obj in additional_objects.items()
                 if (
                     inspect.isfunction(obj)
                     or inspect.isclass(obj)
@@ -90,15 +91,13 @@ class CustomAutoRefPlugin(BasePlugin):
                     or inspect.ismethod(obj)
                 )
                 # and (hasattr(obj, "__name__") or hasattr(obj, "__qualname__"))
-            ]
+            }
 
         known_objects_for_this_module = (
-            self.default_reference_sources + additional_objects
+            self.default_reference_sources | additional_objects
         )
-        known_object_names = [
-            t.__name__ for t in known_objects_for_this_module if hasattr(t, "__name__")
-        ]
 
+        known_object_names = list(known_objects_for_this_module.keys())
         new_markdown = []
         # TODO: This changes things inside code blocks, which is not desired!
         in_code_block = False
@@ -121,9 +120,7 @@ class CustomAutoRefPlugin(BasePlugin):
                     continue
                 if thing_name in known_object_names:
                     # References like `JaxTrainer` (which are in a module that we're aware of).
-                    thing = known_objects_for_this_module[
-                        known_object_names.index(thing_name)
-                    ]
+                    thing = known_objects_for_this_module[thing_name]
                 else:
                     thing = _try_import_thing(thing_name)
 
@@ -142,32 +139,36 @@ class CustomAutoRefPlugin(BasePlugin):
         return "".join(new_markdown)
 
 
-def _expand(obj: types.ModuleType | object) -> list[object]:
+def _expand(obj: types.ModuleType | object) -> dict[str, object]:
     if not inspect.ismodule(obj):
         # The ref is something else (a class, function, etc.)
-        return [obj]
+        if hasattr(obj, "__qualname__"):
+            return {obj.__qualname__: obj}
+        if hasattr(obj, "__name__"):
+            return {obj.__name__: obj}
+        return {}
 
     # The ref is a package, so we import everything from it.
     # equivalent of `from package import *`
     if hasattr(obj, "__all__"):
-        return [getattr(obj, name) for name in obj.__all__]
+        return {name: getattr(obj, name) for name in obj.__all__}
     else:
-        objects_in_global_scope = [
-            v for k, v in vars(obj).items() if not k.startswith("_")
-        ]
+        objects_in_global_scope = {
+            k: v for k, v in vars(obj).items() if not k.startswith("_")
+        }
         # Don't consider any external modules that were imported in the global scope.
         source_file = inspect.getsourcefile(obj)
         # too obtuse, but whatever
-        return [
-            v
-            for v in objects_in_global_scope
+        return {
+            k: v
+            for k, v in objects_in_global_scope.items()
             if not (
                 (
                     inspect.ismodule(v) and getattr(v, "__file__", None) is None
                 )  # built-in module.
                 or (inspect.ismodule(v) and inspect.getsourcefile(v) != source_file)
             )
-        ]
+        }
 
 
 def import_object(target_path: str):
@@ -205,10 +206,11 @@ def import_object(target_path: str):
 
 
 def _get_referencable_objects_from_doc_page_header(doc_page_references: list[str]):
-    additional_objects: list[object] = []
+    additional_objects: dict[str, object] = {}
     for package in doc_page_references:
         additional_ref_source = import_object(package)
-        additional_objects.extend(_expand(additional_ref_source))
+        # todo: what about collisions?
+        additional_objects.update(_expand(additional_ref_source))
     return additional_objects
 
 

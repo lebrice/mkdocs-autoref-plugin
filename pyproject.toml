@@ -10,6 +10,8 @@ dependencies = [
     "mkdocstrings[python]>=0.27.0",
 ]
 
+[project.entry-points."mkdocs.plugins"]
+custom_autoref_plugin = "mkdocs_autoref_plugin.autoref_plugin:CustomAutoRefPlugin"
 
 [dependency-groups]
 dev = [
