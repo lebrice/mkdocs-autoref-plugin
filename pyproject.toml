@@ -22,7 +22,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["mkdocs_autoref_plugin", "tests"]
+testpaths = ["mkdocs_autoref_plugin"]
 norecursedirs = [".venv"]
 addopts = ["--doctest-modules"]
 
@@ -33,7 +33,7 @@ build-backend = "hatchling.build"
 
 
 [tool.hatch.build.targets.wheel]
-packages = ["tool_name"]
+packages = ["mkdocs_autoref_plugin"]
 
 [tool.uv]
 managed = true

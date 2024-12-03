@@ -47,7 +47,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache-suffix: "3.10"
       - name: Install dependencies
-        run: uv sync --frozen --extra docs
+        run: uv sync --frozen
       - name: Build the documentation (strict mode)
         run: uv run mkdocs build --strict
 
