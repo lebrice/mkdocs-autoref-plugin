@@ -11,7 +11,6 @@ import importlib
 import inspect
 import re
 import types
-from typing import Any
 
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.plugins import BasePlugin, get_plugin_logger
