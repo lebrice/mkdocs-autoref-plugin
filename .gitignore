@@ -163,3 +163,4 @@ cython_debug/
 # Virtual environments
 .venv
 site
+.vscode
