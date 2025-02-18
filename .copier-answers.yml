@@ -1,6 +1,7 @@
 # Changes here will be overwritten by Copier
-_commit: v0.0.2
+_commit: v0.0.3
 _src_path: https://github.com/lebrice/tool_template
+project_description: A new project/tool called mkdocs_autoref_plugin.
 python_version: '3.10'
 tool_name: mkdocs_autoref_plugin
 your_email: normandf@mila.quebec

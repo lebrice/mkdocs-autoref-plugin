@@ -6,9 +6,9 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 on:
-    release:
-      types: [published]
-    workflow_dispatch:
+  release:
+    types: [published]
+  workflow_dispatch:
 jobs:
   # https://docs.pypi.org/trusted-publishers/using-a-publisher/
   publish:
