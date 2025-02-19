@@ -41,7 +41,7 @@ wrap-summaries = 99
 wrap-descriptions = 99
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
